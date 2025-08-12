@@ -1,6 +1,7 @@
 # Ecologia de poblaciones
-# Codigo 01b Lectura de datos ordenadas
+# Codigo 01a Lectura de datos ordenadas
 # Profesor Hector Zumbado Ulate
+#Antoni Aguirre Hernández
 
 # setup ----------------------------------------------------------
 
@@ -10,7 +11,7 @@ library(tidyverse)
 
 # data -------------------------------------------------------------
 
-read_csv('data/raw/messy_weather.csv')
+read_csv('data/raw/messy_weather.csv')  %>% view()
 
 read_csv('data/raw/messy_weather.csv') %>%
   lobstr::ref()
