@@ -11,8 +11,8 @@ library(tidyverse)
 
 # data --------------------------------------------------------------------
 
-my_species <- 'craugastor_fitzingeri'
-query = 'Craugastor melanostictus'
+my_species <- 'craugastor_talamancae'
+query = 'Craugastor talamancae'
 
 # Craugastor cuaquero, Craugastor phasma, Craugastor andi no tienen registros
 

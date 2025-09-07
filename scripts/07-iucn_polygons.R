@@ -12,35 +12,35 @@ library(tidyverse)
 
 # data --------------------------------------------------------------------
 
-species <-
-  read_sf('shapefiles/craugastor_crassidigitus/craugastor_crassidigitus.shp')
+# species <-
+#   read_sf('shapefiles/craugastor_melanostictus/data_0.shp')
 
-species %>%
-  tm_shape() +
-  tm_polygons() +
-  tm_shape(
-    species %>%
-      filter(
-        COMPILER == 'IUCN')) +
-  tm_polygons('red')
-
-# save shapefile ----------------------------------------------------------
-
-my_species <- 'craugastor_crassidigitus'
-
-species %>%
-  write_sf(
-    paste0(
-    'shapefiles/',
-    my_species,
-    '.gpkg')) # usar nombre de especie
-
-rm(species)
+# species %>%
+#   tm_shape() +
+#   tm_polygons() +
+#   tm_shape(
+#     species %>%
+#       filter(
+#         COMPILER == 'IUCN')) +
+#   tm_polygons('red')
+#
+# # save shapefile ----------------------------------------------------------
+#
+# my_species <- 'craugastor_melanostictus'
+#
+# species %>%
+#   write_sf(
+#     paste0(
+#     'shapefiles/',
+#     my_species,
+#     '.gpkg')) # usar nombre de especie
+#
+# rm(species)
 
 # cargar ------------------------------------------------------------------
 
- c_fitzingeri <- read_sf('shapefiles/craugastor_fitzingeri.gpkg')
- c_crassidigitus <- read_sf('shapefiles/craugastor_crassidigitus.gpkg')
+# c_fitzingeri <- read_sf('shapefiles/craugastor_fitzingeri.gpkg')
+# c_melanostictus <- read_sf('shapefiles/craugastor_melanostictus.gpkg')
 
 list.files(
   'shapefiles',
@@ -52,11 +52,13 @@ list.files(
         janitor::clean_names() %>%
         rename(species = 'sci_name')) %>%
   set_names(
+    'c_andi',
+    'c_crassidigitus',
     'c_cuaquero',
     'c_fitzingeri',
-    'c_crassidigitus',
-    'c_melanosticus',
+    'c_melanostictus',
     'c_phasma',
+    'c_rayo',
     'c_talamancae') %>%
   list2env(.GlobalEnv)
 
@@ -64,8 +66,8 @@ list.files(
 
 # https://www.iucnredlist.org/resources/spatial-data-legend
 
-c_fitzingeri # 2 poligonos. WGS84
-c_melanostictus # 1 poligono. WGS84
+# c_fitzingeri # 2 poligonos. WGS84
+# c_melanostictus # 1 poligono. WGS84
 
 view(c_fitzingeri)
 
@@ -108,19 +110,37 @@ group_polygon <-
         janitor::clean_names() %>%
         rename(species = 'sci_name')) %>%
   set_names(
+    'c_andi',
+    'c_crassidigitus',
     'c_cuaquero',
     'c_fitzingeri',
-    'c_crassidigitus',
-    'c_melanosticus',
+    'c_melanostictus',
     'c_phasma',
+    'c_rayo',
     'c_talamancae') %>%
   bind_rows()
+
+group_polygon %>%
+  select(species, presence, origin, legend) %>%
+  st_drop_geometry()
+
+tmap_mode('view')
+
+group_polygon %>%
+  filter(species == 'Craugastor cuaquero') %>%
+  filter(compiler == 'IUCN') %>%
+  tm_shape() +
+  tm_polygons('red') +
+  tm_shape(
+    c_cuaquero %>%
+      filter(compiler == 'Kelsey Neam')) +
+  tm_polygons('red')
 
 # calcular area -----------------------------------------------------------
 
 group_area <-
   group_polygon %>%
-  bind_rows() %>%
+  filter(presence != 6) %>%
   st_transform(crs = 3395) %>%
   mutate(
     area = st_area(geom) %>%
@@ -129,16 +149,30 @@ group_area <-
   select(species, area) %>%
   st_drop_geometry()
 
+group_area %>%
+  mutate(area = area %>% as.numeric()) %>%
+  summarise(area = sum(area))
+
+fitzingeri_group_sf <-
+  group_polygon %>%
+  select(assessment:legend) %>%
+  filter(presence != 6) %>%
+  st_union() %>%
+  st_sf()
 
 # mapa --------------------------------------------------------------------
 
-World %>%
+fitzingeri_group_map <-
+  World %>%
   tm_shape() +
   tm_borders() +
   tm_shape(
-    group_polygon,
+    group_polygon %>%
+      filter(presence != 6),
     is.main = TRUE) +
   tm_polygons(fill = 'species')
+
+tmap_mode('plot')
 
 World %>%
   tm_shape() +
@@ -149,6 +183,16 @@ World %>%
   tm_polygons(fill = 'species') +
   tm_facets_grid('species')
 
-tmap_save()
+fitzingeri_group_map <-
+  World %>%
+  tm_shape() +
+  tm_borders() +
+  tm_shape(
+    fitzingeri_group_sf,
+    is.main = TRUE) +
+  tm_polygons('darkgreen')
 
-
+tmap_save(
+  fitzingeri_group_map,
+  'output/figures/fitzingeri_group_map.jpg',
+  dpi = 300)
