@@ -14,8 +14,8 @@ library(tidyverse)
 species_list <-
   "https://raw.githubusercontent.com/hzumbado/eco_pc/refs/heads/main/data/raw/craugastor_fitzingeri_group.csv"
 
-# species_list %>%
-#   write_csv('data/raw/craugastor_fitzingeri_group.csv')
+species_list %>%
+write_csv('data/raw/craugastor_fitzingeri_group.csv')
 
 long_checklist <-
   read_csv(species_list)
